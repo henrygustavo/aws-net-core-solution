@@ -1,0 +1,47 @@
+version: '3.4'
+
+services:
+  aws-worker:
+    image: ${DOCKER_REGISTRY-}aws-worker
+    build:
+      context: .
+      dockerfile: AwsWorker/Dockerfile
+
+  dynamo-local-admin:
+    image: instructure/dynamo-local-admin
+    container_name: dynamo-admin
+    ports:
+      - "8501:8001"
+    environment:
+      - DYNAMO_ENDPOINT=http://aws-localstack:4566
+      - AWS_REGION=us-west-1
+    depends_on:
+      - terraform
+
+  localstack:
+    image: localstack/localstack
+    container_name: aws-localstack
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./localstack-store/dynamodb-local:/tmp/host/localstack/data
+    environment:
+      SERVICES: s3,sns,sqs,dynamodb
+      DEBUG: 1
+      DEFAULT_REGION: us-west-1
+      AWS_DEFAULT_REGION: us-west-1
+      DATA_DIR: /tmp/host/localstack/data
+
+  terraform:
+    image: hashicorp/terraform
+    volumes:
+      - ./tf:/tf:ro
+      - ~/.ssh:/root/.ssh
+    entrypoint:
+      [
+        sh,
+        -c,
+        "cp -R /tf/* /run/ && cd /run/ && terraform init && terraform apply -auto-approve",
+      ]
+    depends_on:
+      - localstack 
