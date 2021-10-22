@@ -1,0 +1,1 @@
+# aws-net-core-solution
