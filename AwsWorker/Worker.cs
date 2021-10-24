@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using AwsWorker.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace AwsWorker
 {
@@ -51,9 +53,7 @@ namespace AwsWorker
                         // RegionEndpoint = RegionEndpoint.USWest1,
                     };
 
-                    var ss = config.ServiceURL;
 
-                    Console.WriteLine(ss);
                     AmazonSQSClient amazonSQSClient = new AmazonSQSClient(credentials, config);
 
                     //Receive request
@@ -69,6 +69,8 @@ namespace AwsWorker
                         {
                             Console.WriteLine($"Message received");
                             Console.WriteLine($"Message: {message.Body}");
+                           
+                            var result = JsonConvert.DeserializeObject<Person>(message.Body);
 
                             //Deleting message
                             var deleteMessageRequest = new DeleteMessageRequest(sqsUrl, message.ReceiptHandle);
@@ -83,7 +85,6 @@ namespace AwsWorker
                     Console.WriteLine(e);
                     throw;
                 }
-
 
                 await Task.Delay(5000, stoppingToken);
             }

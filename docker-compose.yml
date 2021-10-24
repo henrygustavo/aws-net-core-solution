@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   aws-worker:
-    image: ${DOCKER_REGISTRY-}aws-worker
+    image: aws-worker
     build:
       context: .
       dockerfile: AwsWorker/Dockerfile
