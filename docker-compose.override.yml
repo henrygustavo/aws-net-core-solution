@@ -2,6 +2,9 @@ version: '3.4'
 
 services:
 
+  aws-receiver:
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
   aws-worker:
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro

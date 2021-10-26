@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31727.386
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31815.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{CA288563-C7D3-4083-9A4C-9028C74F1F92}"
 EndProject
@@ -11,6 +11,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tf", "tf", "{FB7CE45B-39A4-
 	ProjectSection(SolutionItems) = preProject
 		tf\main.tf = tf\main.tf
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AwsReceiver", "AwsReceiver\AwsReceiver.csproj", "{7768F403-3B34-4934-89CC-63E9D7F7EA71}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AwsEntity", "AwsEntity\AwsEntity.csproj", "{68293925-8232-467E-8B92-74D29DAB8A0E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,6 +30,14 @@ Global
 		{BD57BD1F-8A0E-4B46-9518-76C79FDE902D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD57BD1F-8A0E-4B46-9518-76C79FDE902D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD57BD1F-8A0E-4B46-9518-76C79FDE902D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7768F403-3B34-4934-89CC-63E9D7F7EA71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7768F403-3B34-4934-89CC-63E9D7F7EA71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7768F403-3B34-4934-89CC-63E9D7F7EA71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7768F403-3B34-4934-89CC-63E9D7F7EA71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68293925-8232-467E-8B92-74D29DAB8A0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68293925-8232-467E-8B92-74D29DAB8A0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68293925-8232-467E-8B92-74D29DAB8A0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68293925-8232-467E-8B92-74D29DAB8A0E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

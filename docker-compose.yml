@@ -6,6 +6,11 @@ services:
     build:
       context: .
       dockerfile: AwsWorker/Dockerfile
+  aws-receiver:
+    image: aws-receiver
+    build:
+      context: .
+      dockerfile: AwsReceiver/Dockerfile
 
   dynamo-local-admin:
     image: instructure/dynamo-local-admin
@@ -19,7 +24,7 @@ services:
       - terraform
 
   localstack:
-    image: localstack/localstack
+    image: localstack/localstack:0.11.2
     container_name: aws-localstack
     ports:
       - "4566:4566"
@@ -44,4 +49,15 @@ services:
         "cp -R /tf/* /run/ && cd /run/ && terraform init && terraform apply -auto-approve",
       ]
     depends_on:
-      - localstack 
+      - localstack
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: my-rabbit
+    volumes:
+      - ./rabbitmq/etc/definitions.json:/etc/rabbitmq/definitions.json
+      - ./rabbitmq/etc/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./rabbitmq/data:/var/lib/rabbitmq/mnesia/rabbit@my-rabbit
+      - ./rabbitmq/logs:/var/log/rabbitmq/log
+    ports:
+      - 5672:5672
+      - 15672:15672

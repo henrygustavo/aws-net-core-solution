@@ -6,7 +6,7 @@ using Amazon.SQS;
 using Amazon.SimpleNotificationService;
 using AwsEntity;
 
-namespace AwsWorker
+namespace AwsReceiver
 {
     public class Program
     {
@@ -40,12 +40,16 @@ namespace AwsWorker
                                 h.EnableScopedTopics();
                             });
 
-                            cfg.Message<MessageTest>(x =>
+                            cfg.ReceiveEndpoint(queueName: "local-system-sqs-queue", e =>
                             {
-                                x.SetEntityName("local-system-sns-topic");
+                                e.Subscribe("local-system-sns-topic", s => { });
+                                //e.Consumer(() => new MessageConsumer());
+                                e.Consumer<MessageConsumer>();
                             });
                         });
                     });
+
+                    services.AddMassTransitHostedService(waitUntilStarted: true);
                     services.AddHostedService<Worker>();
                 });
     }
