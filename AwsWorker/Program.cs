@@ -4,7 +4,7 @@ using MassTransit;
 using System;
 using Amazon.SQS;
 using Amazon.SimpleNotificationService;
-using AwsEntity;
+using AwsDomain;
 
 namespace AwsWorker
 {

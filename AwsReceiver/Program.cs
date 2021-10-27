@@ -4,7 +4,7 @@ using MassTransit;
 using System;
 using Amazon.SQS;
 using Amazon.SimpleNotificationService;
-using AwsEntity;
+using AwsDomain.Repository;
 
 namespace AwsReceiver
 {
@@ -28,27 +28,28 @@ namespace AwsReceiver
 
                     services.AddMassTransit(x =>
                     {
+                        x.AddConsumer<MessageConsumer>();
+
                         x.UsingAmazonSqs((context, cfg) =>
+                    {
+                        cfg.Host(new Uri("amazonsqs://aws-localstack:4566"), h =>
                         {
-                            cfg.Host(new Uri("amazonsqs://aws-localstack:4566"), h =>
-                            {
-                                h.Config(AmazonSQSConfig);
-                                h.Config(AmazonSnsConfig);
-                                h.AccessKey(accessKey);
-                                h.SecretKey(secretKey);
+                            h.Config(AmazonSQSConfig);
+                            h.Config(AmazonSnsConfig);
+                            h.AccessKey(accessKey);
+                            h.SecretKey(secretKey);
 
-                                h.EnableScopedTopics();
-                            });
+                            h.EnableScopedTopics();
+                        });
 
-                            cfg.ReceiveEndpoint(queueName: "local-system-sqs-queue", e =>
-                            {
-                                e.Subscribe("local-system-sns-topic", s => { });
-                                //e.Consumer(() => new MessageConsumer());
-                                e.Consumer<MessageConsumer>();
-                            });
+                        cfg.ReceiveEndpoint(queueName: "local-system-sqs-queue", e =>
+                        {
+                            e.Subscribe("local-system-sns-topic", s => { });
+                            e.ConfigureConsumer<MessageConsumer>(context);
                         });
                     });
-
+                    });
+                    services.AddScoped<IUserRepository, UserRepository>();
                     services.AddMassTransitHostedService(waitUntilStarted: true);
                     services.AddHostedService<Worker>();
                 });
