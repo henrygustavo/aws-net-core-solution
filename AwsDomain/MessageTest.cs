@@ -1,4 +1,4 @@
-﻿namespace AwsEntity
+﻿namespace AwsDomain
 {
     public class MessageTest
     {

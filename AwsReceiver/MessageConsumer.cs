@@ -1,9 +1,7 @@
-﻿using AwsEntity;
+﻿using AwsDomain;
+using AwsDomain.Repository;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AwsReceiver
@@ -11,18 +9,17 @@ namespace AwsReceiver
     public class MessageConsumer : IConsumer<MessageTest>
     {
         readonly ILogger<MessageConsumer> _logger;
-
-        public MessageConsumer() { }
-
-        public MessageConsumer(ILogger<MessageConsumer> logger)
+        readonly IUserRepository _userRepository;
+        public MessageConsumer( IUserRepository userRepository, ILogger<MessageConsumer> logger)
         {
+            _userRepository = userRepository;
             _logger = logger;
         }
 
         public Task Consume(ConsumeContext<MessageTest> context)
         {
-           // _logger.LogInformation("Received Text: {Text}", context.Message.Text);
-            Console.WriteLine(context.Message.Text);
+            var userName = _userRepository.GetUserName();
+            _logger.LogInformation("Received Text: {Text} from {userName}", context.Message.Text, userName);
             return Task.CompletedTask;
         }
     }

@@ -1,13 +1,9 @@
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AwsEntity;
+using AwsDomain;
 using MassTransit;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace AwsWorker
 {
@@ -33,7 +29,6 @@ namespace AwsWorker
                    Console.WriteLine(ex.ToString());
                 }
                 
-
                 await Task.Delay(5000, stoppingToken);
             }
         }
