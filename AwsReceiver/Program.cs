@@ -3,19 +3,20 @@ using Microsoft.Extensions.Hosting;
 using MassTransit;
 using System;
 using Amazon.SQS;
-using Amazon.SimpleNotificationService;
 using AwsDomain.Repository;
+using Microsoft.Extensions.Configuration;
+using Amazon.SimpleNotificationService;
 
 namespace AwsReceiver
 {
     public class Program
     {
-        public static readonly AmazonSQSConfig AmazonSQSConfig = new AmazonSQSConfig { ServiceURL = "http://aws-localstack:4566" };
-        public static AmazonSimpleNotificationServiceConfig AmazonSnsConfig = new AmazonSimpleNotificationServiceConfig { ServiceURL = "http://aws-localstack:4566" };
-
+        public static IConfiguration _configuration;
 
         public static void Main(string[] args)
         {
+            _configuration = new ConfigurationBuilder()
+                             .AddJsonFile("appsettings.json", true, true).Build();
             CreateHostBuilder(args).Build().Run();
         }
 
@@ -23,8 +24,15 @@ namespace AwsReceiver
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
-                    const string accessKey = "anaccesskey";
-                    const string secretKey = "anaccesskey";
+                    string accessKey = _configuration["Aws:AccessKey"];
+                    string secretKey = _configuration["Aws:SecretKey"];
+                    string serviceUrl = _configuration["Aws:ServiceUrl"];
+                    string hostUrl = _configuration["Aws:HostUrl"];
+                    string topic = _configuration["Aws:Topic"];
+                    string queue = _configuration["Aws:Queue"];
+
+                    var AmazonSQSConfig = new AmazonSQSConfig { ServiceURL = serviceUrl };
+                    var AmazonSnsConfig = new AmazonSimpleNotificationServiceConfig { ServiceURL = serviceUrl };
 
                     services.AddMassTransit(x =>
                     {
@@ -32,7 +40,7 @@ namespace AwsReceiver
 
                         x.UsingAmazonSqs((context, cfg) =>
                     {
-                        cfg.Host(new Uri("amazonsqs://aws-localstack:4566"), h =>
+                        cfg.Host(new Uri(hostUrl), h =>
                         {
                             h.Config(AmazonSQSConfig);
                             h.Config(AmazonSnsConfig);
@@ -42,9 +50,9 @@ namespace AwsReceiver
                             h.EnableScopedTopics();
                         });
 
-                        cfg.ReceiveEndpoint(queueName: "local-system-sqs-queue", e =>
+                        cfg.ReceiveEndpoint(queueName: queue, e =>
                         {
-                            e.Subscribe("local-system-sns-topic", s => { });
+                            e.Subscribe(topic, s => { });
                             e.ConfigureConsumer<MessageConsumer>(context);
                         });
                     });
