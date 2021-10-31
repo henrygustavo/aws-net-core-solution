@@ -3,19 +3,27 @@ using Microsoft.Extensions.Hosting;
 using MassTransit;
 using System;
 using Amazon.SQS;
-using Amazon.SimpleNotificationService;
 using AwsDomain.Repository;
+using Microsoft.Extensions.Configuration;
+using Amazon.SimpleNotificationService;
+using AwsReceiver.Config;
+using Consumers.AwsReceiver;
+using AwsReceiver.Consumers;
 
 namespace AwsReceiver
 {
     public class Program
     {
-        public static readonly AmazonSQSConfig AmazonSQSConfig = new AmazonSQSConfig { ServiceURL = "http://aws-localstack:4566" };
-        public static AmazonSimpleNotificationServiceConfig AmazonSnsConfig = new AmazonSimpleNotificationServiceConfig { ServiceURL = "http://aws-localstack:4566" };
+        public static AwsConfig _awsConfing;
 
 
         public static void Main(string[] args)
         {
+            var configuration = new ConfigurationBuilder()
+                             .AddJsonFile("appsettings.json", true, true).Build();
+
+            _awsConfing = configuration.GetSection("Aws").Get<AwsConfig>();
+
             CreateHostBuilder(args).Build().Run();
         }
 
@@ -23,29 +31,31 @@ namespace AwsReceiver
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
-                    const string accessKey = "anaccesskey";
-                    const string secretKey = "anaccesskey";
+                    var AmazonSQSConfig = new AmazonSQSConfig { ServiceURL = _awsConfing.ServiceUrl};
+                    var AmazonSnsConfig = new AmazonSimpleNotificationServiceConfig { ServiceURL =_awsConfing.ServiceUrl};
 
                     services.AddMassTransit(x =>
                     {
-                        x.AddConsumer<MessageConsumer>();
+                        x.AddConsumer<MessageEventConsumer>();
+                        x.AddConsumer<UserEventConsumer>();
 
                         x.UsingAmazonSqs((context, cfg) =>
                     {
-                        cfg.Host(new Uri("amazonsqs://aws-localstack:4566"), h =>
+                        cfg.Host(new Uri(_awsConfing.HostUrl), h =>
                         {
                             h.Config(AmazonSQSConfig);
                             h.Config(AmazonSnsConfig);
-                            h.AccessKey(accessKey);
-                            h.SecretKey(secretKey);
-
-                            h.EnableScopedTopics();
+                            h.AccessKey(_awsConfing.AccessKey);
+                            h.SecretKey(_awsConfing.SecretKey);
                         });
 
-                        cfg.ReceiveEndpoint(queueName: "local-system-sqs-queue", e =>
+                        cfg.ReceiveEndpoint(queueName: _awsConfing.Queue, e =>
                         {
-                            e.Subscribe("local-system-sns-topic", s => { });
-                            e.ConfigureConsumer<MessageConsumer>(context);
+                            e.ConfigureConsumeTopology = false;
+                            e.Subscribe(_awsConfing.MessageEventTopic, s => { });
+                            e.Subscribe(_awsConfing.UserEventTopic, s => { });
+                            e.ConfigureConsumer<MessageEventConsumer>(context);
+                            e.ConfigureConsumer<UserEventConsumer>(context);
                         });
                     });
                     });

@@ -5,17 +5,22 @@ using System;
 using Amazon.SQS;
 using Amazon.SimpleNotificationService;
 using AwsDomain;
+using Microsoft.Extensions.Configuration;
+using AwsWorker.Config;
 
 namespace AwsWorker
 {
     public class Program
     {
-        public static readonly AmazonSQSConfig AmazonSQSConfig = new AmazonSQSConfig { ServiceURL = "http://aws-localstack:4566" };
-        public static AmazonSimpleNotificationServiceConfig AmazonSnsConfig = new AmazonSimpleNotificationServiceConfig { ServiceURL = "http://aws-localstack:4566" };
-
+        public static AwsConfig _awsConfing;
 
         public static void Main(string[] args)
         {
+            var configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", true, true).Build();
+
+            _awsConfing = configuration.GetSection("Aws").Get<AwsConfig>();
+
             CreateHostBuilder(args).Build().Run();
         }
 
@@ -23,29 +28,31 @@ namespace AwsWorker
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
-                    const string accessKey = "anaccesskey";
-                    const string secretKey = "anaccesskey";
+                    var AmazonSQSConfig = new AmazonSQSConfig { ServiceURL = _awsConfing.ServiceUrl };
+                    var AmazonSnsConfig = new AmazonSimpleNotificationServiceConfig { ServiceURL = _awsConfing.ServiceUrl };
 
                     services.AddMassTransit(x =>
-                    {
-                        x.UsingAmazonSqs((context, cfg) =>
-                        {
-                            cfg.Host(new Uri("amazonsqs://aws-localstack:4566"), h =>
-                            {
-                                h.Config(AmazonSQSConfig);
-                                h.Config(AmazonSnsConfig);
-                                h.AccessKey(accessKey);
-                                h.SecretKey(secretKey);
+                                {
+                                    x.UsingAmazonSqs((context, cfg) =>
+                                    {
+                                        cfg.Host(new Uri(_awsConfing.HostUrl), h =>
+                                        {
+                                            h.Config(AmazonSQSConfig);
+                                            h.Config(AmazonSnsConfig);
+                                            h.AccessKey(_awsConfing.AccessKey);
+                                            h.SecretKey(_awsConfing.SecretKey);
+                                        });
 
-                                h.EnableScopedTopics();
-                            });
-
-                            cfg.Message<MessageTest>(x =>
-                            {
-                                x.SetEntityName("local-system-sns-topic");
-                            });
-                        });
-                    });
+                                        cfg.Message<MessageEvent>(x =>
+                                        {
+                                            x.SetEntityName(_awsConfing.MessageEventTopic);
+                                        });
+                                        cfg.Message<UserEvent>(x =>
+                                        {
+                                            x.SetEntityName(_awsConfing.UserEventTopic);
+                                        });
+                                    });
+                                });
                     services.AddHostedService<Worker>();
                 });
     }

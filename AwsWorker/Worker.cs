@@ -22,7 +22,8 @@ namespace AwsWorker
             {
                 try
                 {
-                    await _bus.Publish(new MessageTest { Text = $"The time is {DateTimeOffset.Now}" });
+                    await _bus.Publish(new MessageEvent { Text = $"The time is {DateTimeOffset.Now}" });
+                    await _bus.Publish(new UserEvent { Id= Guid.NewGuid() });
                 }
                 catch (Exception ex)
                 {
