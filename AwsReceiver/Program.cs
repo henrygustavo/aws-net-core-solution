@@ -7,6 +7,8 @@ using AwsDomain.Repository;
 using Microsoft.Extensions.Configuration;
 using Amazon.SimpleNotificationService;
 using AwsReceiver.Config;
+using Consumers.AwsReceiver;
+using AwsReceiver.Consumers;
 
 namespace AwsReceiver
 {
@@ -34,7 +36,8 @@ namespace AwsReceiver
 
                     services.AddMassTransit(x =>
                     {
-                        x.AddConsumer<MessageConsumer>();
+                        x.AddConsumer<MessageEventConsumer>();
+                        x.AddConsumer<UserEventConsumer>();
 
                         x.UsingAmazonSqs((context, cfg) =>
                     {
@@ -44,14 +47,15 @@ namespace AwsReceiver
                             h.Config(AmazonSnsConfig);
                             h.AccessKey(_awsConfing.AccessKey);
                             h.SecretKey(_awsConfing.SecretKey);
-
-                            h.EnableScopedTopics();
                         });
 
                         cfg.ReceiveEndpoint(queueName: _awsConfing.Queue, e =>
                         {
-                            e.Subscribe(_awsConfing.Topic, s => { });
-                            e.ConfigureConsumer<MessageConsumer>(context);
+                            e.ConfigureConsumeTopology = false;
+                            e.Subscribe(_awsConfing.MessageEventTopic, s => { });
+                            e.Subscribe(_awsConfing.UserEventTopic, s => { });
+                            e.ConfigureConsumer<MessageEventConsumer>(context);
+                            e.ConfigureConsumer<UserEventConsumer>(context);
                         });
                     });
                     });

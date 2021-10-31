@@ -41,13 +41,15 @@ namespace AwsWorker
                                             h.Config(AmazonSnsConfig);
                                             h.AccessKey(_awsConfing.AccessKey);
                                             h.SecretKey(_awsConfing.SecretKey);
-
-                                            h.EnableScopedTopics();
                                         });
 
-                                        cfg.Message<MessageTest>(x =>
+                                        cfg.Message<MessageEvent>(x =>
                                         {
-                                            x.SetEntityName(_awsConfing.Topic);
+                                            x.SetEntityName(_awsConfing.MessageEventTopic);
+                                        });
+                                        cfg.Message<UserEvent>(x =>
+                                        {
+                                            x.SetEntityName(_awsConfing.UserEventTopic);
                                         });
                                     });
                                 });

@@ -43,10 +43,13 @@ resource "aws_dynamodb_table" "system-db" {
   }
 }
 
-resource "aws_sns_topic" "system-sns-topic" {
-  name = "${local.environment}-${local.domain}-sns-topic"
+resource "aws_sns_topic" "message-event-topic" {
+  name = "${local.environment}-message-event-topic"
 }
 
+resource "aws_sns_topic" "user-event-topic" {
+  name = "${local.environment}-user-event-topic"
+}
 
 # SQS Standard Queues
 resource "aws_sqs_queue" "system-sqs-queue" {
@@ -54,8 +57,15 @@ resource "aws_sqs_queue" "system-sqs-queue" {
   visibility_timeout_seconds = 45
 }
 
-resource "aws_sns_topic_subscription" "system--subscription" {
-  topic_arn            = "${aws_sns_topic.system-sns-topic.arn}"
+resource "aws_sns_topic_subscription" "message-event-topic-subscription" {
+  topic_arn            = "${aws_sns_topic.message-event-topic.arn}"
+  protocol             = "sqs"
+  endpoint             = "${aws_sqs_queue.system-sqs-queue.arn}"
+  raw_message_delivery = true
+}
+
+resource "aws_sns_topic_subscription" "user-event-topic-subscription" {
+  topic_arn            = "${aws_sns_topic.user-event-topic.arn}"
   protocol             = "sqs"
   endpoint             = "${aws_sqs_queue.system-sqs-queue.arn}"
   raw_message_delivery = true

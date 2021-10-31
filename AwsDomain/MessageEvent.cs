@@ -1,6 +1,6 @@
 ﻿namespace AwsDomain
 {
-    public class MessageTest
+    public class MessageEvent
     {
         public string Text { get; set; }
     }

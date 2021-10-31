@@ -4,19 +4,19 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
-namespace AwsReceiver
+namespace Consumers.AwsReceiver
 {
-    public class MessageConsumer : IConsumer<MessageTest>
+    public class MessageEventConsumer : IConsumer<MessageEvent>
     {
-        readonly ILogger<MessageConsumer> _logger;
+        readonly ILogger<MessageEventConsumer> _logger;
         readonly IUserRepository _userRepository;
-        public MessageConsumer( IUserRepository userRepository, ILogger<MessageConsumer> logger)
+        public MessageEventConsumer( IUserRepository userRepository, ILogger<MessageEventConsumer> logger)
         {
             _userRepository = userRepository;
             _logger = logger;
         }
 
-        public Task Consume(ConsumeContext<MessageTest> context)
+        public Task Consume(ConsumeContext<MessageEvent> context)
         {
             var userName = _userRepository.GetUserName();
             _logger.LogInformation("Received Text: {Text} from {userName}", context.Message.Text, userName);
