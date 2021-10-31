@@ -5,19 +5,22 @@ using System;
 using Amazon.SQS;
 using Amazon.SimpleNotificationService;
 using AwsDomain;
-using System.Configuration;
 using Microsoft.Extensions.Configuration;
+using AwsWorker.Config;
 
 namespace AwsWorker
 {
     public class Program
     {
-        public static IConfiguration _configuration;
+        public static AwsConfig _awsConfing;
 
         public static void Main(string[] args)
         {
-            _configuration = new ConfigurationBuilder()
+            var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", true, true).Build();
+
+            _awsConfing = configuration.GetSection("Aws").Get<AwsConfig>();
+
             CreateHostBuilder(args).Build().Run();
         }
 
@@ -25,32 +28,26 @@ namespace AwsWorker
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
-                    string accessKey = _configuration["Aws:AccessKey"];
-                    string secretKey = _configuration["Aws:SecretKey"];
-                    string serviceUrl = _configuration["Aws:ServiceUrl"];
-                    string hostUrl = _configuration["Aws:HostUrl"];
-                    string topic = _configuration["Aws:Topic"];
-
-                    var AmazonSQSConfig = new AmazonSQSConfig { ServiceURL = serviceUrl };
-                    var AmazonSnsConfig = new AmazonSimpleNotificationServiceConfig { ServiceURL = serviceUrl };
+                    var AmazonSQSConfig = new AmazonSQSConfig { ServiceURL = _awsConfing.ServiceUrl };
+                    var AmazonSnsConfig = new AmazonSimpleNotificationServiceConfig { ServiceURL = _awsConfing.ServiceUrl };
 
                     services.AddMassTransit(x =>
                                 {
                                     x.UsingAmazonSqs((context, cfg) =>
                                     {
-                                        cfg.Host(new Uri(hostUrl), h =>
+                                        cfg.Host(new Uri(_awsConfing.HostUrl), h =>
                                         {
                                             h.Config(AmazonSQSConfig);
                                             h.Config(AmazonSnsConfig);
-                                            h.AccessKey(accessKey);
-                                            h.SecretKey(secretKey);
+                                            h.AccessKey(_awsConfing.AccessKey);
+                                            h.SecretKey(_awsConfing.SecretKey);
 
                                             h.EnableScopedTopics();
                                         });
 
                                         cfg.Message<MessageTest>(x =>
                                         {
-                                            x.SetEntityName(topic);
+                                            x.SetEntityName(_awsConfing.Topic);
                                         });
                                     });
                                 });

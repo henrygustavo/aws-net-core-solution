@@ -6,17 +6,22 @@ using Amazon.SQS;
 using AwsDomain.Repository;
 using Microsoft.Extensions.Configuration;
 using Amazon.SimpleNotificationService;
+using AwsReceiver.Config;
 
 namespace AwsReceiver
 {
     public class Program
     {
-        public static IConfiguration _configuration;
+        public static AwsConfig _awsConfing;
+
 
         public static void Main(string[] args)
         {
-            _configuration = new ConfigurationBuilder()
+            var configuration = new ConfigurationBuilder()
                              .AddJsonFile("appsettings.json", true, true).Build();
+
+            _awsConfing = configuration.GetSection("Aws").Get<AwsConfig>();
+
             CreateHostBuilder(args).Build().Run();
         }
 
@@ -24,15 +29,8 @@ namespace AwsReceiver
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
-                    string accessKey = _configuration["Aws:AccessKey"];
-                    string secretKey = _configuration["Aws:SecretKey"];
-                    string serviceUrl = _configuration["Aws:ServiceUrl"];
-                    string hostUrl = _configuration["Aws:HostUrl"];
-                    string topic = _configuration["Aws:Topic"];
-                    string queue = _configuration["Aws:Queue"];
-
-                    var AmazonSQSConfig = new AmazonSQSConfig { ServiceURL = serviceUrl };
-                    var AmazonSnsConfig = new AmazonSimpleNotificationServiceConfig { ServiceURL = serviceUrl };
+                    var AmazonSQSConfig = new AmazonSQSConfig { ServiceURL = _awsConfing.ServiceUrl};
+                    var AmazonSnsConfig = new AmazonSimpleNotificationServiceConfig { ServiceURL =_awsConfing.ServiceUrl};
 
                     services.AddMassTransit(x =>
                     {
@@ -40,19 +38,19 @@ namespace AwsReceiver
 
                         x.UsingAmazonSqs((context, cfg) =>
                     {
-                        cfg.Host(new Uri(hostUrl), h =>
+                        cfg.Host(new Uri(_awsConfing.HostUrl), h =>
                         {
                             h.Config(AmazonSQSConfig);
                             h.Config(AmazonSnsConfig);
-                            h.AccessKey(accessKey);
-                            h.SecretKey(secretKey);
+                            h.AccessKey(_awsConfing.AccessKey);
+                            h.SecretKey(_awsConfing.SecretKey);
 
                             h.EnableScopedTopics();
                         });
 
-                        cfg.ReceiveEndpoint(queueName: queue, e =>
+                        cfg.ReceiveEndpoint(queueName: _awsConfing.Queue, e =>
                         {
-                            e.Subscribe(topic, s => { });
+                            e.Subscribe(_awsConfing.Topic, s => { });
                             e.ConfigureConsumer<MessageConsumer>(context);
                         });
                     });
