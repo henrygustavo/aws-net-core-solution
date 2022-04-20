@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MassTransit;
 using System;
@@ -31,8 +31,8 @@ namespace AwsReceiver
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
-                    var AmazonSQSConfig = new AmazonSQSConfig { ServiceURL = _awsConfing.ServiceUrl};
-                    var AmazonSnsConfig = new AmazonSimpleNotificationServiceConfig { ServiceURL =_awsConfing.ServiceUrl};
+                    var AmazonSQSConfig = new AmazonSQSConfig { ServiceURL = _awsConfing.ServiceUrl };
+                    var AmazonSnsConfig = new AmazonSimpleNotificationServiceConfig { ServiceURL = _awsConfing.ServiceUrl };
 
                     services.AddMassTransit(x =>
                     {
@@ -60,7 +60,6 @@ namespace AwsReceiver
                     });
                     });
                     services.AddScoped<IUserRepository, UserRepository>();
-                    services.AddMassTransitHostedService(waitUntilStarted: true);
                     services.AddHostedService<Worker>();
                 });
     }
